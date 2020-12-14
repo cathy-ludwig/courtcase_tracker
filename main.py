@@ -1,17 +1,11 @@
-import requests
-import sys
+import datetime
 import psycopg2
+import pytz
+import requests
 from bs4 import BeautifulSoup
-from psycopg2 import sql
-import pytz, datetime
 
 
 def insert():
-    # ec2-54-208-233-243.compute-1.amazonaws.com
-    # database - d38s99glk0d3ju
-    # user - qyyfzmrmyrjuwn
-    # port - 5432
-    # password - d4d572dfbc214774fdf89fac428a4338330d71d072cf41f6e5236d1a8b0007d0
     url = 'https://www.nebraska.gov/courts/calendar/index.cgi'
     myobj = {
         'court': 'C',
@@ -46,29 +40,17 @@ def insert():
     cursor = conn.cursor()
 
     for table_row in table_rows[3:]:
-        print(table_row)
-        cname, date, time, hearing_type, caption, case_id = [c.get_text() for c in table_row.find_all("td")]
-        print(cname)
+        try:
+            cname, date, time, hearing_type, caption, case_id = [c.get_text().strip() for c in table_row.find_all("td")]
 
-        local = pytz.timezone("America/Chicago")
-        localdatetime = datetime.datetime.strptime(f"{date}T{time}", "%m/%d/%Y T%I:%M%p")
-        local_dt = local.localize(localdatetime, is_dst=None)
-        utc_dt = local_dt.astimezone(pytz.utc)
+            local = pytz.timezone("America/Chicago")
+            localdatetime = datetime.datetime.strptime(f"{date}T{time}", "%m/%d/%YT%I:%M%p")
+            local_dt = local.localize(localdatetime, is_dst=None)
+            utc_dt = local_dt.isoformat(timespec="minutes")
 
-        person_insert = sql.SQL(
-            "insert into court_cases.court_case ({fields}) values" + f"({cname}, {utc_dt}, {hearing_type}, {case_id}, {caption});").format(
-            fields=sql.SQL(",").join([
-                sql.Identifier("court_case", "person_id"),
-                sql.Identifier("court_case", "court_date"),
-                sql.Identifier("court_case", "hearing_type"),
-                sql.Identifier("court_case", "case_id"),
-                sql.Identifier("court_case", "caption")
-            ]),
-            field1=sql.Identifier("court_cases", "court_case"),
-            # field2=sql.Identifier("court_cases", "person"),
-        )
-
-        cursor.execute(person_insert)
+            cursor.execute("INSERT INTO court_cases.court_case (person_id, court_date, hearing_type, case_id, caption) VALUES (%s, %s, %s, %s, %s)", ('1', date, hearing_type, case_id, caption))
+        except Exception:
+            continue
 
         # Preparing SQL queries to INSERT a record into the database.
         # cursor.execute('INSERT INTO court_cases.court_case(person_id, court_date, hearing_type, case_id, caption) VALUES (1, {cname}, {date} {time}, {hearing_type}, {case_id}, {caption})')
