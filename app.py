@@ -1,6 +1,11 @@
 # app.py
 from flask import Flask, request, jsonify
+from get_cases import query_cases, connect_to_db
 app = Flask(__name__)
+
+@app.route('/cases/', methods=['GET'])
+def cases():
+    return query_cases(connect_to_db(), 'test')
 
 @app.route('/getmsg/', methods=['GET'])
 def respond():
