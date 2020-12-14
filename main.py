@@ -28,7 +28,13 @@ def insert():
     table_rows = soup.find_all('tr')
     print(dir(table_rows))
 
-
+    conn = psycopg2.connect(
+        database="d38s99glk0d3ju",
+        user='qyyfzmrmyrjuwn',
+        password='d4d572dfbc214774fdf89fac428a4338330d71d072cf41f6e5236d1a8b0007d0',
+        host='ec2-54-208-233-243.compute-1.amazonaws.com',
+        port='5432'
+    )
 
     # Creating a cursor object using the cursor() method
     cursor = conn.cursor()
