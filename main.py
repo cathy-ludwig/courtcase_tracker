@@ -1,41 +1,9 @@
 import datetime
-import psycopg2
 import pytz
 import requests
 from bs4 import BeautifulSoup
 
-
-def insert():
-    url = 'https://www.nebraska.gov/courts/calendar/index.cgi'
-    myobj = {
-        'court': 'C',
-        'countyC': 'Douglas',
-        'countyD': '',
-        'selectRadio': 'date',
-        'searchField': '12/14/2020',
-        'submitButton': 'Submit'
-    }
-
-    # print('Number of arguments:', len(sys.argv), 'arguments.')
-    # print('Argument List:', str(sys.argv))
-
-    response = requests.post(url, data=myobj)
-    content = str(response.content, "utf-8")
-    # content = content.replace('\n', '')
-    # content = content.replace('\b', '')
-    #
-    soup = BeautifulSoup(content, features="html.parser")
-    table_rows = soup.find_all('tr')
-    print(dir(table_rows))
-
-    conn = psycopg2.connect(
-        database="d38s99glk0d3ju",
-        user='qyyfzmrmyrjuwn',
-        password='d4d572dfbc214774fdf89fac428a4338330d71d072cf41f6e5236d1a8b0007d0',
-        host='ec2-54-208-233-243.compute-1.amazonaws.com',
-        port='5432'
-    )
-
+def update_db(conn, table_rows):
     # Creating a cursor object using the cursor() method
     cursor = conn.cursor()
 
@@ -57,9 +25,25 @@ def insert():
 
     conn.commit()
 
+def get_data(date):
+    url = 'https://www.nebraska.gov/courts/calendar/index.cgi'
+    myobj = {
+        'court': 'C',
+        'countyC': 'Douglas',
+        'countyD': '',
+        'selectRadio': 'date',
+        'searchField': date,
+        'submitButton': 'Submit'
+    }
 
-# Press the green button in the gutter to run the script.
+    response = requests.post(url, data=myobj)
+    content = str(response.content, "utf-8")
+
+    soup = BeautifulSoup(content, features="html.parser")
+    table_rows = soup.find_all('tr')
+    return table_rows
+
 if __name__ == '__main__':
-    insert()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    table_rows = get_data('12/14/2020')
+    print(dir(table_rows))
+    update_db(table_rows)
