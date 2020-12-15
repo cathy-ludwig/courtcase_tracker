@@ -3,7 +3,6 @@ from flask import Flask, request, jsonify
 from get_cases import query_cases, connect_to_db
 from main import get_data, update_db
 from datetime import datetime
-import json
 app = Flask(__name__)
 
 @app.route('/cases/', methods=['GET'])
@@ -15,9 +14,9 @@ def adddata():
     # Retrieve the name from url parameter
     date_time_str = request.args.get("date", None)
     date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
-    table_rows = get_data(date_time_obj.strftime('%Y/%m/%d'))
+    table_rows = get_data(date_time_obj.strftime('%m/%d/%Y'))
     #update_db(connect_to_db(), table_rows)
-    return json.dumps(table_rows)
+    return jsonify(table_rows)
 
 @app.route('/getmsg/', methods=['GET'])
 def respond():
