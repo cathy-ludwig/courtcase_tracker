@@ -15,8 +15,8 @@ def adddata():
     date_time_str = request.args.get("date", None)
     date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
     table_rows = get_data(date_time_obj.strftime('%m/%d/%Y'))
-    #update_db(connect_to_db(), table_rows)
-    return jsonify(table_rows)
+    update_db(connect_to_db(), table_rows)
+    return "<h1>Thanks!</h1>"
 
 @app.route('/getmsg/', methods=['GET'])
 def respond():
